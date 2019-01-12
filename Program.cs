@@ -6,19 +6,23 @@ namespace ServerSystem
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
-            ServerSystem.Security.MachineInfo m = new Security.MachineInfo("Some Text");
+
+            ServerSystem.Security.MachineInfo m = 
+                    new Security.MachineInfo("Here we need the mac address or may some other data");
+
+            // The next needs to be hard coded
             var llave = GetRandomData(128);
             var vector = GetRandomData(128);
+            var validityDays = 30u;
 
             ServerSystem.Security.MachineKeyGenerator keyGenerator = 
-                            new Security.MachineKeyGenerator(30,vector,llave);
+                            new Security.MachineKeyGenerator(validityDays,vector,llave);
 
             var result = keyGenerator.GeneraFirmaDeMachineSignature(m);
-            Console.WriteLine(result.Firma);
-            var decriptado = keyGenerator.Decriptar(result.Firma);
             
-            Console.WriteLine(decriptado);
+            var machineInfo = keyGenerator.Decriptar(result);
+            
+            Console.WriteLine(machineInfo);
         }
 
         private static byte[] GetRandomData(int bits)

@@ -35,19 +35,20 @@ namespace ServerSystem.Security
 
         }
 
-        internal MachineSignature GeneraFirmaDeMachineSignature(MachineInfo machineInfo) {
+        internal String GeneraFirmaDeMachineSignature(MachineInfo machineInfo) {
             
             Guid id = Guid.NewGuid();
             DateTime fechaDeFirma = DateTime.Now;
             DateTime fechaDeExpiracion = fechaDeFirma.AddDays(this.VigenciaDeFirmaEnDias);
-            String firma = GeneraFirma(machineInfo,id,fechaDeExpiracion);
             
-            return new MachineSignature(
+            
+            var m =  new MachineSignature(
                 id:id,
                 machineInfo : machineInfo,
                 signDate:fechaDeFirma,
                 expirationDate:fechaDeExpiracion
             );
+            return GeneraFirma(m.ToString());
         }
 
         static void ValidaLlave(byte[] arr){
@@ -63,7 +64,7 @@ namespace ServerSystem.Security
             if(arr.Length != 16) throw new ArgumentException("Vector es inválido");
         }
 
-        public String Decriptar(String cadenaCifrada){
+        internal MachineSignature Decriptar(String cadenaCifrada){
             string textoPlano = null;
             using(AesManaged aes = new AesManaged()) {
                     
@@ -78,11 +79,11 @@ namespace ServerSystem.Security
                         }
                     }
                 }
-            return textoPlano; 
+            return MachineSignature.CrearDesdeCadena(textoPlano); 
         }
 
-        private string GeneraFirma(MachineInfo info, Guid id, DateTime fechaDeExpiracion){
-            
+        private string GeneraFirma(string texto){
+            var bytesAFirmar = System.Text.UTF8Encoding.UTF8.GetBytes(texto);
             byte[] firma ;
             using(var aes = Aes.Create()){
                 aes.Key = this.llave;
@@ -91,7 +92,7 @@ namespace ServerSystem.Security
                     using (var resultStream = new MemoryStream())
                     {
                         using (var aesStream = new CryptoStream(resultStream, encryptor, CryptoStreamMode.Write))
-                        using (var plainStream = new MemoryStream(CadenaAFirmar(info,fechaDeExpiracion)))
+                        using (var plainStream = new MemoryStream(bytesAFirmar))
                         {
                             plainStream.CopyTo(aesStream);
                         }
@@ -101,13 +102,6 @@ namespace ServerSystem.Security
             }
 
             return Convert.ToBase64String(firma);
-       }
-
-       private byte[] CadenaAFirmar(MachineInfo info, DateTime fechaDeExpiracion)
-       {
-           var texto = info+"|"+fechaDeExpiracion.ToString("dd/MM/yyyy");
-           Console.WriteLine(texto);
-           return System.Text.UTF8Encoding.UTF8.GetBytes(texto);
        }
 
 

@@ -27,7 +27,7 @@ namespace ServerSystem.Security{
         }
 
 
-        public static MachineSignature  crearDesdeCadena(string cadena){
+        public static MachineSignature  CrearDesdeCadena(string cadena){
                 var args = cadena.Split('|');
                 return new MachineSignature(
                     id: Guid.Parse(args[0]) ,
